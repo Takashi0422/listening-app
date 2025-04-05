@@ -1,46 +1,64 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>英語リスニング教材</title>
+  <title>英語リスニング教材ジェネレーター</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 2em;
-      background-color: #f2f2f2;
-    }
-    .card {
-      background-color: #fff;
-      padding: 1.5em;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: auto;
-    }
-    button {
-      padding: 0.5em 1em;
-      font-size: 1em;
-      margin-top: 1em;
-      cursor: pointer;
-    }
+    body { font-family: sans-serif; padding: 2em; background: #f8f8f8; }
+    label, input, select, button { display: block; margin: 1em 0; }
+    #output { white-space: pre-wrap; background: #fff; padding: 1em; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>英語スクリプト</h2>
-    <p id="english-text">
-      Tom can play the piano. He practices every day after school in the music room.
-    </p>
-    <button onclick="speakText()">🔊 読み上げる</button>
-  </div>
+  <h1>英語リスニング教材ジェネレーター</h1>
+
+  <label>レベル：
+    <select id="level">
+      <option value="基礎">基礎</option>
+      <option value="標準" selected>標準</option>
+      <option value="応用">応用</option>
+    </select>
+  </label>
+
+  <label>文法：
+    <input type="text" id="grammar" placeholder="例：助動詞（can）">
+  </label>
+
+  <label>テーマ：
+    <input type="text" id="theme" placeholder="例：学校生活">
+  </label>
+
+  <button onclick="generateMaterial()">教材を生成する</button>
+
+  <h2>出力結果</h2>
+  <div id="output">ここに教材が表示されます</div>
 
   <script>
-    function speakText() {
-      const text = document.getElementById("english-text").innerText;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-      speechSynthesis.speak(utterance);
+    async function generateMaterial() {
+      const level = document.getElementById("level").value;
+      const grammar = document.getElementById("grammar").value;
+      const theme = document.getElementById("theme").value;
+
+      const res = await fetch("https://api.dify.ai/v1/chat-messages", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer app-Vr8KPWzHvlILYGerF0cxdvrA",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inputs: {
+            "レベル": level,
+            "文法": grammar,
+            "テーマ": theme
+          },
+          response_mode: "blocking",
+          user: "web-user"
+        })
+      });
+
+      const data = await res.json();
+      document.getElementById("output").innerText = data.answer || "出力に失敗しました。";
     }
   </script>
 </body>
