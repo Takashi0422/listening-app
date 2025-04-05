@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>英語リスニング教材（Dify連携 × 音声付き）</title>
+  <!-- ResponsiveVoice.js の無料版 -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
+</head>
+<body>
+  <h2>🎧 英語リスニング教材 自動生成</h2>
+
+  <label>レベル：</label><input type="text" id="level" value="中1"><br>
+  <label>文法単元：</label><input type="text" id="grammar" value="be動詞"><br>
+  <label>テーマ：</label><input type="text" id="theme" value="学校生活"><br>
+  <button onclick="generateLesson()">教材を生成＆読み上げ</button>
+
+  <h3>📜 英文スクリプト：</h3>
+  <pre id="english-script">ここに英文が表示されます</pre>
+  <button onclick="playVoice()">▶️ 英語を読み上げる</button>
+
+  <script>
+    const DIFY_API_KEY = "app-Vr8KPWzHvlILYGerF0cxdvrA";  // ここにDifyのキーを貼る
+    const DIFY_API_URL = "https://api.dify.ai/v1/chat-messages";
+    let scriptText = "";  // 英文スクリプトを保持
+
+    async function generateLesson() {
+      const level = document.getElementById("level").value;
+      const grammar = document.getElementById("grammar").value;
+      const theme = document.getElementById("theme").value;
+
+      const prompt = `
+レベル: ${level}
+文法単元: ${grammar}
+テーマ: ${theme}
+→ 中学生向け英語教材を以下の形式で作成してください：
+1. 英文スクリプト：
+2. 日本語訳：
+3. リスニング問題：
+4. 解答：
+      `.trim();
+
+      const res = await fetch(DIFY_API_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${DIFY_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inputs: {},
+          query: prompt
+        })
+      });
+
+      const json = await res.json();
+      const output = json.answer || json.output;
+
+      // 英文スクリプトを抽出
+      const match = output.match(/1\. 英文スクリプト：\n?([\s\S]*?)\n2\. 日本語訳/);
+      scriptText = match ? match[1].trim() : "スクリプトの抽出に失敗しました";
+      document.getElementById("english-script").innerText = scriptText;
+      playVoice(); // 自動で読み上げ
+    }
+
+    function playVoice() {
+      if (!scriptText) {
+        alert("まずは教材を生成してください！");
+        return;
+      }
+      responsiveVoice.speak(scriptText, "UK English Female");
+    }
+  </script>
+</body>
+</html>
