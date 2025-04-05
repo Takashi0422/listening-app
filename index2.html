@@ -2,26 +2,27 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>英語リスニング教材（Dify連携 × 音声付き）</title>
-  <!-- ResponsiveVoice.js の無料版 -->
-  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
+  <title>英語リスニング教材ジェネレーター</title>
 </head>
 <body>
-  <h2>🎧 英語リスニング教材 自動生成</h2>
+  <h1>英語リスニング教材ジェネレーター</h1>
 
-  <label>レベル：</label><input type="text" id="level" value="中1"><br>
-  <label>文法単元：</label><input type="text" id="grammar" value="be動詞"><br>
-  <label>テーマ：</label><input type="text" id="theme" value="学校生活"><br>
-  <button onclick="generateLesson()">教材を生成＆読み上げ</button>
+  <label>レベル：</label>
+  <select id="level">
+    <option>標準</option>
+    <option>中1</option>
+    <option>中2</option>
+  </select><br>
 
-  <h3>📜 英文スクリプト：</h3>
-  <pre id="english-script">ここに英文が表示されます</pre>
-  <button onclick="playVoice()">▶️ 英語を読み上げる</button>
+  <label>文法：</label><input type="text" id="grammar" value="助動詞"><br>
+  <label>テーマ：</label><input type="text" id="theme" value="旅行"><br>
+  <button type="button" onclick="generateLesson()">教材を生成する</button>
+
+  <h2>出力結果</h2>
+  <div id="output">ここに教材が表示されます</div>
 
   <script>
-    const DIFY_API_KEY = "app-Vr8KPWzHvlILYGerF0cxdvrA";  // ここにDifyのキーを貼る
-    const DIFY_API_URL = "https://api.dify.ai/v1/chat-messages";
-    let scriptText = "";  // 英文スクリプトを保持
+    const DIFY_API_KEY = "app-Vr8KPWzHvlILYGerF0cxdvrA"; // ←ここを正しく設定
 
     async function generateLesson() {
       const level = document.getElementById("level").value;
@@ -35,14 +36,14 @@
 → 中学生向け英語教材を以下の形式で作成してください：
 1. 英文スクリプト：
 2. 日本語訳：
-3. リスニング問題：
+3. リスニング問題（2問）：
 4. 解答：
       `.trim();
 
-      const res = await fetch(DIFY_API_URL, {
+      const response = await fetch("https://api.dify.ai/v1/chat-messages", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${DIFY_API_KEY}`,
+          "Authorization": "Bearer " + DIFY_API_KEY,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -51,22 +52,8 @@
         })
       });
 
-      const json = await res.json();
-      const output = json.answer || json.output;
-
-      // 英文スクリプトを抽出
-      const match = output.match(/1\. 英文スクリプト：\n?([\s\S]*?)\n2\. 日本語訳/);
-      scriptText = match ? match[1].trim() : "スクリプトの抽出に失敗しました";
-      document.getElementById("english-script").innerText = scriptText;
-      playVoice(); // 自動で読み上げ
-    }
-
-    function playVoice() {
-      if (!scriptText) {
-        alert("まずは教材を生成してください！");
-        return;
-      }
-      responsiveVoice.speak(scriptText, "UK English Female");
+      const data = await response.json();
+      document.getElementById("output").innerText = data.answer || data.output || "生成に失敗しました。";
     }
   </script>
 </body>
